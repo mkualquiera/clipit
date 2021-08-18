@@ -104,9 +104,9 @@ class PixelDrawer(DrawingInterface):
             for c in range(self.num_cols):
                 index = r * self.num_cols + c
                 pixel = pixels[index]
-                self.color_vars[index][0] = pixel[0]
-                self.color_vars[index][1] = pixel[1]
-                self.color_vars[index][2] = pixel[2]
+                self.color_vars[index][0] = pixel[0]/255.0
+                self.color_vars[index][1] = pixel[1]/255.0
+                self.color_vars[index][2] = pixel[2]/255.0
 
     def reapply_from_tensor(self, new_tensor):
         # TODO
