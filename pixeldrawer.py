@@ -94,6 +94,7 @@ class PixelDrawer(DrawingInterface):
         # TODO
         pass
 
+    @torch.no_grad()
     def init_from_tensor(self, init_tensor):
         print("WORKING WITH INIT IMAGE!")
         newim = init_tensor.resize((self.num_cols,self.num_rows),resample=PIL.Image.NEAREST)
