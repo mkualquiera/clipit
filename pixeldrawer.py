@@ -50,6 +50,7 @@ class PixelDrawer(DrawingInterface):
         colors = []
         
         if self.init_image:
+            print("WORKING WITH INIT IMAGE!")
             newim = self.init_image.resize((num_cols,num_rows),resample=PIL.image.NEAREST)
             newim = newim.convert('RGB')
             pixels = list(newim.getdata())
@@ -68,6 +69,7 @@ class PixelDrawer(DrawingInterface):
                     path_group = pydiffvg.ShapeGroup(shape_ids = torch.tensor([len(shapes) - 1]), stroke_color = None, fill_color = cell_color)
                     shape_groups.append(path_group)
         else:
+            print("NO INIT IMAGE!")
             # Initialize Random Pixels
             for r in range(num_rows):
                 cur_y = r * cell_height
@@ -116,7 +118,7 @@ class PixelDrawer(DrawingInterface):
 
     def init_from_tensor(self, init_tensor):
         self.init_image = init_tensor
-        pass
+        print("SET INIT IMAGE!")
 
     def reapply_from_tensor(self, new_tensor):
         # TODO
