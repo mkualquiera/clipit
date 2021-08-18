@@ -1,3 +1,4 @@
+
 from DrawingInterface import DrawingInterface
 
 import pydiffvg
@@ -27,7 +28,6 @@ class PixelDrawer(DrawingInterface):
         self.canvas_width = width
         self.canvas_height = height
         self.do_mono = do_mono
-        self.init_image = None
         if shape is not None:
             self.num_rows, self.num_cols = shape
 
@@ -45,48 +45,26 @@ class PixelDrawer(DrawingInterface):
         cell_width = canvas_width / num_cols
         cell_height = canvas_height / num_rows
 
+        # Initialize Random Pixels
         shapes = []
         shape_groups = []
         colors = []
-        
-        if self.init_image:
-            print("WORKING WITH INIT IMAGE!")
-            newim = self.init_image.resize((num_cols,num_rows),resample=PIL.image.NEAREST)
-            newim = newim.convert('RGB')
-            pixels = list(newim.getdata())
-            for r in range(num_rows):
-                cur_y = r * cell_height
-                for c in range(num_cols):
-                    cur_x = c * cell_width
-                    index = r * num_cols + c
-                    pixel = pixels[index]
-                    cell_color = torch.tensor([pixel[0], pixel[1], pixel[2], 1.0])
-                    colors.append(cell_color)
-                    p0 = [cur_x, cur_y]
-                    p1 = [cur_x+cell_width, cur_y+cell_height]
-                    path = pydiffvg.Rect(p_min=torch.tensor(p0), p_max=torch.tensor(p1))
-                    shapes.append(path)
-                    path_group = pydiffvg.ShapeGroup(shape_ids = torch.tensor([len(shapes) - 1]), stroke_color = None, fill_color = cell_color)
-                    shape_groups.append(path_group)
-        else:
-            print("NO INIT IMAGE!")
-            # Initialize Random Pixels
-            for r in range(num_rows):
-                cur_y = r * cell_height
-                for c in range(num_cols):
-                    cur_x = c * cell_width
-                    if self.do_mono:
-                        mono_color = random.random()
-                        cell_color = torch.tensor([mono_color, mono_color, mono_color, 1.0])
-                    else:
-                        cell_color = torch.tensor([random.random(), random.random(), random.random(), 1.0])
-                    colors.append(cell_color)
-                    p0 = [cur_x, cur_y]
-                    p1 = [cur_x+cell_width, cur_y+cell_height]
-                    path = pydiffvg.Rect(p_min=torch.tensor(p0), p_max=torch.tensor(p1))
-                    shapes.append(path)
-                    path_group = pydiffvg.ShapeGroup(shape_ids = torch.tensor([len(shapes) - 1]), stroke_color = None, fill_color = cell_color)
-                    shape_groups.append(path_group)
+        for r in range(num_rows):
+            cur_y = r * cell_height
+            for c in range(num_cols):
+                cur_x = c * cell_width
+                if self.do_mono:
+                    mono_color = random.random()
+                    cell_color = torch.tensor([mono_color, mono_color, mono_color, 1.0])
+                else:
+                    cell_color = torch.tensor([random.random(), random.random(), random.random(), 1.0])
+                colors.append(cell_color)
+                p0 = [cur_x, cur_y]
+                p1 = [cur_x+cell_width, cur_y+cell_height]
+                path = pydiffvg.Rect(p_min=torch.tensor(p0), p_max=torch.tensor(p1))
+                shapes.append(path)
+                path_group = pydiffvg.ShapeGroup(shape_ids = torch.tensor([len(shapes) - 1]), stroke_color = None, fill_color = cell_color)
+                shape_groups.append(path_group)
 
         # Just some diffvg setup
         scene_args = pydiffvg.RenderFunction.serialize_scene(\
@@ -94,15 +72,15 @@ class PixelDrawer(DrawingInterface):
         render = pydiffvg.RenderFunction.apply
         img = render(canvas_width, canvas_height, 2, 2, 0, None, *scene_args)
 
-        color_vars = []
+        self.color_vars = []
         for group in shape_groups:
             group.fill_color.requires_grad = True
-            color_vars.append(group.fill_color)
+            self.color_vars.append(group.fill_color)
 
         # Optimizers
         # points_optim = torch.optim.Adam(points_vars, lr=1.0)
         # width_optim = torch.optim.Adam(stroke_width_vars, lr=0.1)
-        color_optim = torch.optim.Adam(color_vars, lr=0.02)
+        color_optim = torch.optim.Adam(self.color_vars, lr=0.02)
 
         self.img = img
         self.shapes = shapes 
@@ -117,8 +95,17 @@ class PixelDrawer(DrawingInterface):
         pass
 
     def init_from_tensor(self, init_tensor):
-        self.init_image = init_tensor
-        print("SET INIT IMAGE!")
+        print("WORKING WITH INIT IMAGE!")
+        newim = init_tensor.resize((self.num_cols,self.num_rows),resample=PIL.image.NEAREST)
+        newim = newim.convert('RGB')
+        pixels = list(newim.getdata())
+        for r in range(self.num_rows):
+            for c in range(self.num_cols):
+                index = r * self.num_cols + c
+                pixel = pixels[index]
+                self.color_vars[index][0] = pixel[0]
+                self.color_vars[index][1] = pixel[1]
+                self.color_vars[index][2] = pixel[2]
 
     def reapply_from_tensor(self, new_tensor):
         # TODO
