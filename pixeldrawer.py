@@ -96,7 +96,7 @@ class PixelDrawer(DrawingInterface):
 
     def init_from_tensor(self, init_tensor):
         print("WORKING WITH INIT IMAGE!")
-        newim = init_tensor.resize((self.num_cols,self.num_rows),resample=PIL.image.NEAREST)
+        newim = init_tensor.resize((self.num_cols,self.num_rows),resample=PIL.Image.NEAREST)
         newim = newim.convert('RGB')
         pixels = list(newim.getdata())
         for r in range(self.num_rows):
