@@ -387,6 +387,7 @@ def do_init(args):
         else:
             img = Image.new(mode="RGB", size=(args.size[0], args.size[1]), color=(255, 255, 255))
         starting_image = img.convert('RGB')
+
         starting_image = starting_image.resize((sideX, sideY), Image.LANCZOS)
 
         if args.init_image:
@@ -397,6 +398,11 @@ def do_init(args):
               init_image = Image.open(args.init_image)
             # this version is needed potentially for the loss function
             init_image_rgb = init_image.convert('RGB')
+
+            if args.use_pixeldraw:
+                init_image_rgb.save("starting_image.png")
+                drawer.init_from_tensor(init_image_rgb)
+
             init_image_rgb = init_image_rgb.resize((sideX, sideY), Image.LANCZOS)
             init_image_tensor = TF.to_tensor(init_image_rgb)
             init_image_tensor = init_image_tensor.to(device).unsqueeze(0)
@@ -409,10 +415,11 @@ def do_init(args):
                 top_image.putalpha(args.init_image_alpha)
             starting_image.paste(top_image, (0, 0), top_image)
 
-        starting_image.save("starting_image.png")
-        starting_tensor = TF.to_tensor(starting_image)
-        init_tensor = starting_tensor.to(device).unsqueeze(0) * 2 - 1
-        drawer.init_from_tensor(init_tensor)
+        if not args.use_pixeldraw:
+            starting_image.save("starting_image.png")
+            starting_tensor = TF.to_tensor(starting_image)
+            init_tensor = starting_tensor.to(device).unsqueeze(0) * 2 - 1
+            drawer.init_from_tensor(init_tensor)
 
     else:
         # untested
