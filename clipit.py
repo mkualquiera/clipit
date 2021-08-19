@@ -400,8 +400,8 @@ def do_init(args):
             init_image_rgb = init_image.convert('RGB')
 
             if args.use_pixeldraw:
-                init_image_rgb.save("starting_image.png")
-                drawer.init_from_tensor(init_image_rgb)
+                init_image.save("starting_image.png")
+                drawer.init_from_tensor(init_image)
 
             init_image_rgb = init_image_rgb.resize((sideX, sideY), Image.LANCZOS)
             init_image_tensor = TF.to_tensor(init_image_rgb)

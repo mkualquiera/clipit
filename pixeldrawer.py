@@ -88,6 +88,7 @@ class PixelDrawer(DrawingInterface):
         self.opts = [color_optim]
 
     def get_opts(self):
+        print("Obtained opt")
         return self.opts
 
     def rand_init(self, toksX, toksY):
@@ -97,8 +98,9 @@ class PixelDrawer(DrawingInterface):
     @torch.no_grad()
     def init_from_tensor(self, init_tensor):
         print("WORKING WITH INIT IMAGE!")
+        new_vars = []
         newim = init_tensor.resize((self.num_cols,self.num_rows),resample=PIL.Image.NEAREST)
-        newim = newim.convert('RGB')
+        newim = newim.convert('RGBA')
         pixels = list(newim.getdata())
         for r in range(self.num_rows):
             for c in range(self.num_cols):
@@ -107,6 +109,13 @@ class PixelDrawer(DrawingInterface):
                 self.color_vars[index][0] = pixel[0]/255.0
                 self.color_vars[index][1] = pixel[1]/255.0
                 self.color_vars[index][2] = pixel[2]/255.0
+                if pixel[3] > 0.8:
+                    new_vars.append(self.color_vars[index])
+        self.color_vars = new_vars
+        color_optim = torch.optim.Adam(self.color_vars, lr=0.02)
+        self.opts = [color_optim]
+        print("Updated opt")
+
 
     def reapply_from_tensor(self, new_tensor):
         # TODO
