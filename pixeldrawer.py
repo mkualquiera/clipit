@@ -109,7 +109,7 @@ class PixelDrawer(DrawingInterface):
                 self.color_vars[index][0] = pixel[0]/255.0
                 self.color_vars[index][1] = pixel[1]/255.0
                 self.color_vars[index][2] = pixel[2]/255.0
-                if pixel[3] > 0.8:
+                if pixel[3]/255.0 > 0.8:
                     new_vars.append(self.color_vars[index])
         self.color_vars = new_vars
         color_optim = torch.optim.Adam(self.color_vars, lr=0.02)
