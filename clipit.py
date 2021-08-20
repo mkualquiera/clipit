@@ -47,7 +47,7 @@ except ImportError:
     pass
     # print('clipdrawer not imported')
 try:
-    from pixeldrawer import PixelDrawer
+    from pixeldrawergb import PixelDrawer
 except ImportError:
     pass
     # print('pixeldrawer not imported')
