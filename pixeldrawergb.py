@@ -3,6 +3,7 @@ from DrawingInterface import DrawingInterface
 
 import pydiffvg
 import torch
+import torch.nn
 import skimage
 import skimage.io
 import random
@@ -119,10 +120,16 @@ class PixelDrawer(DrawingInterface):
 
         colorstensor = torch.stack(self.all_colors)
 
-        img = torch.reshape(colorstensor,(self.num_rows,self.num_cols,3))
+        img = colorstensor.reshape(colorstensor,(self.num_rows,self.num_cols,3))
+
 
         img = img.unsqueeze(0)
         img = img.permute(0, 3, 1, 2) # NHWC -> NCHW
+
+        if not self.upsampler:
+            self.upsampler = torch.nn.Upsample(scale_factor=6,mode='nearest')
+        img = self.upsampler(img)
+
         print(img.get_device())
         self.img = img
         return img
@@ -136,7 +143,6 @@ class PixelDrawer(DrawingInterface):
         # img = np.repeat(img, 4, axis=0)
         # img = np.repeat(img, 4, axis=1)
         pimg = PIL.Image.fromarray(img, mode="RGB")
-        pimg = pimg.resize((self.num_cols*10,self.num_rows*10),PIL.Image.NEAREST)
         return pimg
 
     def clip_z(self):
