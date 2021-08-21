@@ -29,6 +29,7 @@ class PixelDrawer(DrawingInterface):
         self.canvas_width = width
         self.canvas_height = height
         self.do_mono = do_mono
+        self.upsampler = False
         self.device = torch.device('cuda')
         if shape is not None:
             self.num_rows, self.num_cols = shape
