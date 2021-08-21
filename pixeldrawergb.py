@@ -123,6 +123,7 @@ class PixelDrawer(DrawingInterface):
 
         img = img.unsqueeze(0)
         img = img.permute(0, 3, 1, 2) # NHWC -> NCHW
+        print(img.get_device())
         self.img = img
         return img
 
