@@ -48,9 +48,9 @@ class PixelDrawer(DrawingInterface):
             for c in range(num_cols):
                 if self.do_mono:
                     mono_color = random.random()
-                    cell_color = torch.tensor([mono_color, mono_color, mono_color, 1.0])
+                    cell_color = torch.tensor([mono_color, mono_color, mono_color])
                 else:
-                    cell_color = torch.tensor([random.random(), random.random(), random.random(), 1.0])
+                    cell_color = torch.tensor([random.random(), random.random(), random.random()])
                 colors.append(cell_color)
 
         self.all_colors = colors
