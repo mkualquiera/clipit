@@ -97,10 +97,7 @@ class PixelDrawer(DrawingInterface):
                 self.all_colors[index][1] = pixel[1]/255.0
                 self.all_colors[index][2] = pixel[2]/255.0
                 if pixel[3]/255.0 > 0.8:
-                    self.color_vars[index].requires_grad = False
                     new_vars.append(self.color_vars[index])
-                else:
-                    self.color_vars[index].requires_grad = False
         self.color_vars = new_vars
         color_optim = torch.optim.Adam(self.color_vars, lr=0.02)
         self.opts = [color_optim]
@@ -121,22 +118,12 @@ class PixelDrawer(DrawingInterface):
     def synth(self, cur_iteration):
 
         colorstensor = torch.stack(self.all_colors)
-
-        print(self.all_colors[0].device)
-
-        print(colorstensor.device)
-
         img = colorstensor.reshape((self.num_rows,self.num_cols,3))
-
-
         img = img.unsqueeze(0)
         img = img.permute(0, 3, 1, 2) # NHWC -> NCHW
-
         if not self.upsampler:
             self.upsampler = torch.nn.Upsample(scale_factor=6,mode='nearest')
         img = self.upsampler(img)
-
-        print(img.device)
         self.img = img
         return img
 
