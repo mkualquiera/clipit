@@ -121,6 +121,10 @@ class PixelDrawer(DrawingInterface):
 
         colorstensor = torch.stack(self.all_colors)
 
+        print(self.all_colors[0].device)
+
+        print(colorstensor.device)
+
         img = colorstensor.reshape((self.num_rows,self.num_cols,3))
 
 
