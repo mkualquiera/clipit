@@ -120,7 +120,7 @@ class PixelDrawer(DrawingInterface):
 
         colorstensor = torch.stack(self.all_colors)
 
-        img = colorstensor.reshape(colorstensor,(self.num_rows,self.num_cols,3))
+        img = colorstensor.reshape((self.num_rows,self.num_cols,3))
 
 
         img = img.unsqueeze(0)
