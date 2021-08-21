@@ -54,8 +54,7 @@ class PixelDrawer(DrawingInterface):
                     cell_color = torch.tensor([mono_color, mono_color, mono_color])
                 else:
                     cell_color = torch.tensor([random.random(), random.random(), random.random()])
-                cell_color.to(self.device)
-                print(cell_color.device)
+                cell_color = cell_color.to(self.device)
                 colors.append(cell_color)
 
         self.all_colors = colors
@@ -137,7 +136,7 @@ class PixelDrawer(DrawingInterface):
             self.upsampler = torch.nn.Upsample(scale_factor=6,mode='nearest')
         img = self.upsampler(img)
 
-        print(img.get_device())
+        print(img.device)
         self.img = img
         return img
 
