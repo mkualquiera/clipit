@@ -343,10 +343,7 @@ def do_init(args):
     if args.use_clipdraw:
         drawer = ClipDrawer(args.size[0], args.size[1], args.strokes)
     elif args.use_pixeldraw:
-        if global_aspect_width == 1:
-            drawer = PixelDrawer(args.size[0], args.size[1], args.do_mono, [40, 40])
-        else:
-            drawer = PixelDrawer(args.size[0], args.size[1], args.do_mono)
+        drawer = PixelDrawer(args.size[0], args.size[1], args.do_mono, args.scale)
     else:
         drawer = VqganDrawer(args.vqgan_model)
     drawer.load_model(args.vqgan_config, args.vqgan_checkpoint, device)
@@ -1048,21 +1045,16 @@ def process_args(vq_parser, namespace=None):
         'draft': 200,
         'normal': 350,
         'better': 500,
-        'best': 500
+        'best': 1000
     }
-    quality_to_scale_table = {
-        'draft': 1,
-        'normal': 2,
-        'better': 3,
-        'best': 4
-    }
+
     # this should be replaced with logic that does somethings
     # smart based on available memory (eg: size, num_models, etc)
     quality_to_num_cuts_table = {
-        'draft': 40,
-        'normal': 40,
+        'draft': 10,
+        'normal': 20,
         'better': 40,
-        'best': 40
+        'best': 80
     }
 
     if args.quality not in quality_to_clip_models_table:
@@ -1077,16 +1069,6 @@ def process_args(vq_parser, namespace=None):
         args.num_cuts = quality_to_num_cuts_table[args.quality]
     if args.ezsize is None and args.scale is None:
         args.scale = quality_to_scale_table[args.quality]
-
-    size_to_scale_table = {
-        'small': 1,
-        'medium': 2,
-        'large': 4
-    }
-    aspect_to_size_table = {
-        'square': [150, 150],
-        'widescreen': [200, 112]
-    }
 
     # determine size if not set
     if args.size is None:
@@ -1106,10 +1088,7 @@ def process_args(vq_parser, namespace=None):
             print("aspect not understood, aborting -> ", argz.aspect)
             exit(1)
 
-    if args.aspect == "widescreen":
-        global_aspect_width = 16/9
-    else:
-        global_aspect_width = 1
+    global_aspect_width = args.size[0] / args.size[1]
 
     if args.init_noise.lower() == "none":
         args.init_noise = None

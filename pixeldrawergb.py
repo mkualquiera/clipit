@@ -13,27 +13,22 @@ class PixelDrawer(DrawingInterface):
     do_mono = False
     pixels = []
 
-    def __init__(self, width, height, do_mono, shape=None):
+    def __init__(self, width, height, do_mono, scale):
         super(DrawingInterface, self).__init__()
 
-        self.canvas_width = width
-        self.canvas_height = height
+        self.num_cols = width
+        self.num_rows = height
         self.do_mono = do_mono
         self.upsampler = False
-        if shape is not None:
-            self.num_rows, self.num_cols = shape
+        self.scale = scale
 
 
     def load_model(self, config_path, checkpoint_path, device):
         # gamma = 1.0
 
-        self.device = torch.device('cuda')
+        self.device = device
 
-        canvas_width, canvas_height = self.canvas_width, self.canvas_height
         num_rows, num_cols = self.num_rows, self.num_cols
-        
-        cell_width = canvas_width / num_cols
-        cell_height = canvas_height / num_rows
 
         # Initialize Random Pixels
         colors = []
@@ -112,7 +107,7 @@ class PixelDrawer(DrawingInterface):
         img = img.unsqueeze(0)
         img = img.permute(0, 3, 1, 2) # NHWC -> NCHW
         if not self.upsampler:
-            self.upsampler = torch.nn.Upsample(scale_factor=6,mode='nearest')
+            self.upsampler = torch.nn.Upsample(scale_factor=self.scale,mode='nearest')
         img = self.upsampler(img)
         self.img = img
         return img
