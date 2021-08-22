@@ -31,23 +31,12 @@ class PixelDrawer(DrawingInterface):
         num_rows, num_cols = self.num_rows, self.num_cols
 
         # Initialize Random Pixels
-        colors = []
-        for r in range(num_rows):
-            for c in range(num_cols):
-                if self.do_mono:
-                    mono_color = random.random()
-                    cell_color = torch.tensor([mono_color, mono_color, mono_color])
-                else:
-                    cell_color = torch.tensor([random.random(), random.random(), random.random()])
-                cell_color = cell_color.to(self.device)
-                colors.append(cell_color)
-
-        self.all_colors = colors
+        self.all_colors = torch.randn((1,3,num_rows,num_cols),
+            device=self.device,requires_grad=True)
 
         self.color_vars = []
-        for color in colors:
-            color.requires_grad = True
-            self.color_vars.append(color)
+
+        self.color_vars.append(self.all_colors)
 
         # Optimizers
         # points_optim = torch.optim.Adam(points_vars, lr=1.0)
@@ -75,18 +64,13 @@ class PixelDrawer(DrawingInterface):
             for c in range(self.num_cols):
                 index = r * self.num_cols + c
                 pixel = pixels[index]
-                self.color_vars[index][0] = pixel[0]/255.0
-                self.color_vars[index][1] = pixel[1]/255.0
-                self.color_vars[index][2] = pixel[2]/255.0
-                self.all_colors[index][0] = pixel[0]/255.0
-                self.all_colors[index][1] = pixel[1]/255.0
-                self.all_colors[index][2] = pixel[2]/255.0
-                if pixel[3]/255.0 > 0.8:
-                    new_vars.append(self.color_vars[index])
-        self.color_vars = new_vars
-        color_optim = torch.optim.Adam(self.color_vars, lr=0.02)
-        self.opts = [color_optim]
-        print("Updated opt")
+                
+                self.all_colors[0,0,r,c] = pixel[0]/255.0
+                self.all_colors[0,1,r,c] = pixel[0]/255.0
+                self.all_colors[0,2,r,c] = pixel[0]/255.0
+                ## TODO masking?
+                ##if pixel[3]/255.0 > 0.8:
+                ##    new_vars.append(self.color_vars[index])
 
 
     def reapply_from_tensor(self, new_tensor):
@@ -102,10 +86,7 @@ class PixelDrawer(DrawingInterface):
 
     def synth(self, cur_iteration):
 
-        colorstensor = torch.stack(self.all_colors)
-        img = colorstensor.reshape((self.num_rows,self.num_cols,3))
-        img = img.unsqueeze(0)
-        img = img.permute(0, 3, 1, 2) # NHWC -> NCHW
+        img = self.all_colors
         if not self.upsampler:
             self.upsampler = torch.nn.Upsample(scale_factor=self.scale,mode='nearest')
         img = self.upsampler(img)
@@ -117,7 +98,7 @@ class PixelDrawer(DrawingInterface):
         img = self.img.detach().cpu().numpy()[0]
         img = np.transpose(img, (1, 2, 0))
         img = np.clip(img, 0, 1)
-        img = np.uint8(img * 254)
+        img = np.uint8(img * 255)
         # img = np.repeat(img, 4, axis=0)
         # img = np.repeat(img, 4, axis=1)
         pimg = PIL.Image.fromarray(img, mode="RGB")
@@ -125,11 +106,8 @@ class PixelDrawer(DrawingInterface):
 
     def clip_z(self):
         with torch.no_grad():
-            for color in self.all_colors:
-                color.data.clamp_(0.0, 1.0)
-                if self.do_mono:
-                    avg_amount = torch.mean(color)
-                    color.data[:3] = avg_amount
+            torch.clamp(self.all_colors,min=0.0,max=1.0)
+            
 
     def get_z(self):
         return None
